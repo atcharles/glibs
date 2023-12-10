@@ -42,7 +42,7 @@ func (c *Captcha) Captcha() iris.Handler {
 }
 
 func (c *Captcha) Generate() (arg CaptchaArg, err error) {
-	arg.ID, arg.Content, err = c.getInc().Generate()
+	arg.ID, arg.Content, _, err = c.getInc().Generate()
 	if err != nil {
 		return
 	}
