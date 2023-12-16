@@ -107,7 +107,7 @@ func (d *DBOption) dbInitiate() (db *gorm.DB, err error) {
 		Logger:                                   d.GetLogger(),
 		NowFunc:                                  nil,
 		DryRun:                                   false,
-		PrepareStmt:                              true,
+		PrepareStmt:                              false,
 		DisableAutomaticPing:                     false,
 		DisableForeignKeyConstraintWhenMigrating: false,
 		IgnoreRelationshipsWhenMigrating:         false,
