@@ -1,5 +1,5 @@
 PROXY_OLD=$(shell go env GOPROXY)
-PROXY=https://goproxy.cn,direct
+PROXY=https://goproxy.io,direct
 .PHONY:vet lint upgrade
 vet:
 	@echo "Running go vet"

@@ -15,34 +15,25 @@ import (
 
 type CCStore struct {
 	c    *ccache.Cache[[]byte]
-	mu   sync.RWMutex
 	once sync.Once
 }
 
 func (c *CCStore) ClearAll() {
-	c.mu.Lock()
 	c.c.Clear()
-	c.mu.Unlock()
 }
 
 func (c *CCStore) Del(key string) {
-	c.mu.Lock()
 	c.c.Delete(key)
-	c.mu.Unlock()
 }
 
 func (c *CCStore) DropPrefix(prefix ...string) {
-	c.mu.Lock()
 	for _, s := range prefix {
 		c.c.DeletePrefix(s)
 	}
-	c.mu.Unlock()
 }
 
 func (c *CCStore) Get(key string) (data []byte, ok bool) {
-	c.mu.RLock()
 	item := c.c.Get(key)
-	c.mu.RUnlock()
 	if item == nil {
 		return
 	}
@@ -59,13 +50,11 @@ func (c *CCStore) Get(key string) (data []byte, ok bool) {
 func (c *CCStore) GetCCache() *ccache.Cache[[]byte] { return c.lazyInitialize().c }
 
 func (c *CCStore) Set(key string, data []byte, ttl ...int64) {
-	c.mu.Lock()
 	var t = time.Hour
 	if len(ttl) > 0 && ttl[0] > 0 {
 		t = time.Duration(ttl[0]) * time.Second
 	}
 	c.c.Set(key, data, t)
-	c.mu.Unlock()
 }
 
 // lazyInitialize ...
@@ -81,20 +70,15 @@ func (c *CCStore) lazyInitialize() *CCStore {
 
 type FreeStore struct {
 	c    *freecache.Cache
-	mu   sync.RWMutex
 	once sync.Once
 }
 
 func (f *FreeStore) ClearAll() {
-	f.mu.Lock()
 	f.c.Clear()
-	f.mu.Unlock()
 }
 
 func (f *FreeStore) Del(key string) {
-	f.mu.Lock()
 	f.c.Del([]byte(key))
-	f.mu.Unlock()
 }
 
 func (f *FreeStore) DropPrefix(prefix ...string) {
@@ -107,16 +91,14 @@ func (f *FreeStore) DropPrefix(prefix ...string) {
 		k := string(entry.Key)
 		for _, p := range prefix {
 			if strings.HasPrefix(k, p) {
-				f.Del(k)
+				f.c.Del(entry.Key)
 			}
 		}
 	}
 }
 
 func (f *FreeStore) Get(key string) (data []byte, ok bool) {
-	f.mu.RLock()
 	d, err := f.c.Get([]byte(key))
-	f.mu.RUnlock()
 	if err != nil {
 		return
 	}
@@ -132,9 +114,7 @@ func (f *FreeStore) Set(key string, data []byte, ttl ...int64) {
 	if len(ttl) > 0 {
 		exp = int(ttl[0])
 	}
-	f.mu.Lock()
 	_ = f.c.Set([]byte(key), data, exp)
-	f.mu.Unlock()
 }
 
 // lazyInitialize ...

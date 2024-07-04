@@ -10,6 +10,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/kataras/iris/v12"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm/logger"
 
 	"github.com/atcharles/glibs/config"
 	"github.com/atcharles/glibs/gemq"
@@ -204,6 +205,10 @@ func parseDBOpt() (opt *mdb.DBOption) {
 	if host == "" {
 		host = config.Viper().GetString("app.host")
 	}
+	logLevelVal := logger.LogLevel(dbConf.GetInt("log_level"))
+	if logLevelVal == 0 {
+		logLevelVal = logger.Error
+	}
 	return &mdb.DBOption{
 		Type:               dbType,
 		Host:               host,
@@ -213,7 +218,7 @@ func parseDBOpt() (opt *mdb.DBOption) {
 		DB:                 dbName,
 		SkipCache:          dbConf.GetBool("skip_cache"),
 		CacheType:          dbConf.GetString("cache_type"),
-		Logger:             nil,
+		Logger:             mdb.NewDBLoggerWithLevel(logLevelVal),
 		MaxIdleConns:       dbConf.GetInt("max_idle_conns"),
 		MaxOpenConns:       dbConf.GetInt("max_open_conns"),
 		MaxLifetimeSeconds: dbConf.GetInt64("max_lifetime_seconds"),
